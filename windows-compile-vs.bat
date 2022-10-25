@@ -3,7 +3,7 @@
 REM For future users: This file MUST have CRLF line endings. If it doesn't, lots of inexplicable undesirable strange behaviour will result.
 REM Also: Don't modify this version with sed, or it will screw up your line endings.
 set PHP_MAJOR_VER=8.1
-set PHP_VER=%PHP_MAJOR_VER%.9
+set PHP_VER=%PHP_MAJOR_VER%.11
 set PHP_GIT_REV=php-%PHP_VER%
 set PHP_DISPLAY_VER=%PHP_VER%
 set PHP_SDK_VER=2.2.0
@@ -21,10 +21,10 @@ set MSBUILD_CONFIGURATION=RelWithDebInfo
 set LIBYAML_VER=0.2.5
 set PTHREAD_W32_VER=3.0.0
 set LEVELDB_MCPE_VER=1c7564468b41610da4f498430e795ca4de0931ff
-set LIBDEFLATE_VER=b01537448e8eaf0803e38bdba5acef1d1c8effba
+set LIBDEFLATE_VER=0d1779a071bcc636e5156ddb7538434da7acad22
 set LIBRDKAFKA_VER=9b72ca3aa6c49f8f57eea02f70aadb1453d3ba1f
 
-set PHP_PTHREADS_VER=4.1.3
+set PHP_PTHREADS_VER=4.1.4
 set PHP_YAML_VER=2.2.2
 set PHP_CHUNKUTILS2_VER=0.3.3
 set PHP_IGBINARY_VER=3.2.7
@@ -387,6 +387,7 @@ call :pm-echo "Generating php.ini..."
 (echo zend_extension=php_xdebug.dll)>>"%php_ini%"
 (echo ;https://xdebug.org/docs/all_settings#mode)>>"%php_ini%"
 (echo xdebug.mode=off)>>"%php_ini%"
+(echo xdebug.start_with_request=yes)>>"%php_ini%"
 (echo ;The following overrides allow profiler, gc stats and traces to work correctly in ZTS)>>"%php_ini%"
 (echo xdebug.profiler_output_name=cachegrind.%%s.%%p.%%r)>>"%php_ini%"
 (echo xdebug.gc_stats_output_name=gcstats.%%s.%%p.%%r)>>"%php_ini%"

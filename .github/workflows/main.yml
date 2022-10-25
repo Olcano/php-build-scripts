@@ -12,7 +12,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install tools and dependencies
         run: |
@@ -35,7 +35,7 @@ jobs:
           zip -r Linux.zip ./PHP_Linux-x86_64.tar.gz install.log
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Linux
@@ -46,7 +46,7 @@ jobs:
         run: tar -czf workspace.tar.gz install_data
 
       - name: Upload workspace
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: Linux-workspace
@@ -60,7 +60,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install tools and dependencies
         run: brew install libtool autoconf automake pkg-config bison re2c
@@ -76,7 +76,7 @@ jobs:
         run: tar -czf ./PHP_MacOS-x86_64.tar.gz bin
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: MacOS
@@ -91,7 +91,7 @@ jobs:
         run: tar -czf workspace.tar.gz install_data
 
       - name: Upload workspace
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: MacOS-workspace
@@ -105,7 +105,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install tools and dependencies
         run: choco install wget --no-progress
@@ -117,7 +117,7 @@ jobs:
           SOURCES_PATH: ${{ github.workspace }}\pocketmine-php-sdk
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Windows

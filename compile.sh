@@ -1,22 +1,22 @@
 #!/bin/bash
-[ -z "$PHP_VERSION" ] && PHP_VERSION="8.1.9"
+[ -z "$PHP_VERSION" ] && PHP_VERSION="8.1.11"
 
 ZLIB_VERSION="1.2.11" #1.2.12 breaks on macOS and probably cross-compile too due to ignoring $CC
 GMP_VERSION="6.2.1"
-CURL_VERSION="curl-7_84_0"
+CURL_VERSION="curl-7_85_0"
 YAML_VERSION="0.2.5"
 LEVELDB_VERSION="1c7564468b41610da4f498430e795ca4de0931ff"
-LIBXML_VERSION="2.10.0"
-LIBPNG_VERSION="1.6.37"
+LIBXML_VERSION="2.10.1" #2.10.2 requires automake 1.16.3, which isn't easily available on Ubuntu 20.04
+LIBPNG_VERSION="1.6.38"
 LIBJPEG_VERSION="9e"
 OPENSSL_VERSION="1.1.1p" #1.1.1q breaks on macOS (https://github.com/openssl/openssl/issues/18720)
 LIBZIP_VERSION="1.9.2"
 SQLITE3_YEAR="2022"
-SQLITE3_VERSION="3390200" #3.39.2
-LIBDEFLATE_VERSION="6b5b57116c5b1672a2407aa68f3a49c72f877cb3" #1.12
+SQLITE3_VERSION="3390400" #3.39.4
+LIBDEFLATE_VERSION="0d1779a071bcc636e5156ddb7538434da7acad22" #1.14
 LIBRDKAFKA_VER="9b72ca3aa6c49f8f57eea02f70aadb1453d3ba1f"
 
-EXT_PTHREADS_VERSION="4.1.3"
+EXT_PTHREADS_VERSION="4.1.4"
 EXT_YAML_VERSION="2.2.2"
 EXT_RDKAFKA_VERSION="6.0.3"
 EXT_LEVELDB_VERSION="317fdcd8415e1566fc2835ce2bdb8e19b890f9f3"
@@ -1139,6 +1139,7 @@ if [[ "$HAVE_XDEBUG" == "yes" ]]; then
 	echo "zend_extension=xdebug.so" >> "$INSTALL_DIR/bin/php.ini" 2>&1
 	echo ";https://xdebug.org/docs/all_settings#mode" >> "$INSTALL_DIR/bin/php.ini" 2>&1
 	echo "xdebug.mode=off" >> "$INSTALL_DIR/bin/php.ini" 2>&1
+	echo "xdebug.start_with_request=yes" >> "$INSTALL_DIR/bin/php.ini" 2>&1
 	echo ";The following overrides allow profiler, gc stats and traces to work correctly in ZTS" >> "$INSTALL_DIR/bin/php.ini" 2>&1
 	echo "xdebug.profiler_output_name=cachegrind.%s.%p.%r" >> "$INSTALL_DIR/bin/php.ini" 2>&1
 	echo "xdebug.gc_stats_output_name=gcstats.%s.%p.%r" >> "$INSTALL_DIR/bin/php.ini" 2>&1
