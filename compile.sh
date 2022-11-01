@@ -15,6 +15,7 @@ SQLITE3_YEAR="2022"
 SQLITE3_VERSION="3390400" #3.39.4
 LIBDEFLATE_VERSION="0d1779a071bcc636e5156ddb7538434da7acad22" #1.14
 LIBRDKAFKA_VER="9b72ca3aa6c49f8f57eea02f70aadb1453d3ba1f"
+LIBZSTD_VER="1.5.2"
 
 EXT_PTHREADS_VERSION="4.1.4"
 EXT_YAML_VERSION="2.2.2"
@@ -406,6 +407,36 @@ download_file "https://github.com/php/php-src/archive/php-$PHP_VERSION.tar.gz" |
 mv php-src-php-$PHP_VERSION php
 echo " done!"
 
+function build_zstd {
+  	echo -n "[zstd] downloading $LIBZSTD_VER..."
+  	download_file "https://github.com/facebook/zstd/archive/v$LIBZSTD_VER.tar.gz" | tar -zx >> "$DIR/install.log" 2>&1
+  	mv zstd-$LIBZSTD_VER zstd
+  	cd zstd/build/cmake
+
+  	echo -n " checking..."
+
+  	if [ "$DO_STATIC" != "yes" ]; then
+  		local EXTRA_FLAGS="-DBUILD_SHARED_LIBS=ON"
+  	else
+  		local EXTRA_FLAGS=""
+  	fi
+  	cmake . \
+  		-DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+  		-DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
+  		-DCMAKE_INSTALL_LIBDIR=lib \
+  		-DCMAKE_BUILD_TYPE=Release \
+  		$CMAKE_GLOBAL_EXTRA_FLAGS \
+  		$EXTRA_FLAGS \
+  		>> "$DIR/install.log" 2>&1
+
+  	echo -n " compiling..."
+  	make -j $THREADS >> "$DIR/install.log" 2>&1
+  	echo -n " installing..."
+  	make install >> "$DIR/install.log" 2>&1
+  	cd ..
+  	echo " done!"
+}
+
 function build_zlib {
 	if [ "$DO_STATIC" == "yes" ]; then
 		local EXTRA_FLAGS="--static"
@@ -488,7 +519,6 @@ function build_openssl {
 	--openssldir="$INSTALL_DIR" \
 	no-asm \
 	no-hw \
-	no-engine \
 	$EXTRA_FLAGS >> "$DIR/install.log" 2>&1
 
 	echo -n " compiling..."
@@ -593,8 +623,8 @@ function build_kafka {
 		-DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
 		-DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
 		-DCMAKE_INSTALL_LIBDIR=lib \
-		-DWITH_ZSTD=OFF \
-		-DWITH_SSL=OFF \
+		-DWITH_ZSTD=ON \
+		-DWITH_SSL=ON \
 		-DWITH_CURL=OFF \
 		-DCMAKE_BUILD_TYPE=Release \
 		$CMAKE_GLOBAL_EXTRA_FLAGS \
@@ -807,6 +837,7 @@ function build_libdeflate {
 	echo " done!"
 }
 
+build_zstd
 build_zlib
 build_gmp
 build_openssl
@@ -1030,6 +1061,7 @@ $HAVE_MYSQLI \
 --enable-opcache=$HAVE_OPCACHE \
 --enable-opcache-jit=$HAVE_OPCACHE \
 --enable-zstd \
+--with-libzstd \
 --enable-igbinary \
 --enable-vanillagenerator \
 --with-crypto \

@@ -129,7 +129,7 @@ jobs:
 
   prepare-release:
     runs-on: ubuntu-18.04
-    needs: [linux]
+    needs: [linux, Windows]
     if: "${{!contains(github.event.head_commit.message, '[ci skip]') && github.ref == 'refs/heads/stable'}}"
 
     steps:
@@ -151,4 +151,5 @@ jobs:
           title: "PHP ${{ steps.php.outputs.version }}"
           files: |
             Linux/Linux.zip
+            Windows/php-*.zip
           prerelease: false

@@ -23,6 +23,7 @@ set PTHREAD_W32_VER=3.0.0
 set LEVELDB_MCPE_VER=1c7564468b41610da4f498430e795ca4de0931ff
 set LIBDEFLATE_VER=0d1779a071bcc636e5156ddb7538434da7acad22
 set LIBRDKAFKA_VER=9b72ca3aa6c49f8f57eea02f70aadb1453d3ba1f
+set LIBZSTD_VER=1.5.2
 
 set PHP_PTHREADS_VER=4.1.4
 set PHP_YAML_VER=2.2.2
@@ -38,7 +39,7 @@ set PHP_XDEBUG_VER=3.1.5
 
 set PHP_VANILLAGENERATOR_VER=56fc48ea1367e1d08b228dfa580b513fbec8ca31
 set PHP_LIBKAFKA_VER=6.0.3
-REM set PHP_ZSTD_VER=0.11.0
+set PHP_ZSTD_VER=0.11.0
 
 set script_path=%~dp0
 set log_file=%script_path%compile.log
@@ -116,6 +117,22 @@ call bin\phpsdk_deps.bat -u -t %VC_VER% -b %PHP_MAJOR_VER% -a %ARCH% -f -d %DEPS
 
 
 call :pm-echo "Getting additional dependencies..."
+cd /D "%DEPS_DIR%"
+
+call :pm-echo "Downloading zstd version %LIBZSTD_VER%..."
+call :get-zip "https://github.com/facebook/zstd/archive/v%LIBZSTD_VER%.zip" || exit 1
+move zstd-%LIBZSTD_VER% zstd >> "%log_file%" 2>&1
+cd zstd/build/cmake
+call :pm-echo "Generating build configuration..."
+cmake -G "%CMAKE_TARGET%" -A "%ARCH%"^
+ -DCMAKE_PREFIX_PATH="%DEPS_DIR%"^
+ -DCMAKE_INSTALL_PREFIX="%DEPS_DIR%"^
+ -DBUILD_SHARED_LIBS=ON^
+ . >>"%log_file%" 2>&1 || exit 1
+call :pm-echo "Compiling..."
+msbuild ALL_BUILD.vcxproj /p:Configuration=%MSBUILD_CONFIGURATION% /m >>"%log_file%" 2>&1 || exit 1
+call :pm-echo "Installing files..."
+msbuild INSTALL.vcxproj /p:Configuration=%MSBUILD_CONFIGURATION% /m >>"%log_file%" 2>&1 || exit 1
 cd /D "%DEPS_DIR%"
 
 call :pm-echo "Downloading LibYAML version %LIBYAML_VER%..."
@@ -236,13 +253,7 @@ call :get-extension-zip-from-github "xxhash"                "%PHP_XXHASH_VER%"  
 call :get-extension-zip-from-github "xdebug"                "%PHP_XDEBUG_VER%"                "xdebug"   "xdebug"                  || exit 1
 call :get-extension-zip-from-github "vanillagenerator"      "%PHP_VANILLAGENERATOR_VER%" "NetherGamesMC" "ext-vanillagenerator"    || exit 1
 call :get-extension-zip-from-github "rdkafka"               "%PHP_LIBKAFKA_VER%"             "arnaud-lb" "php-rdkafka"             || exit 1
-
-REM call :pm-echo " - zstd: downloading %PHP_ZSTD_VER%..."
-REM git clone https://github.com/kjdev/php-ext-zstd.git zstd >>"%log_file%" 2>&1 || exit 1
-REM cd /D zstd
-REM git checkout %PHP_ZSTD_VER% >>"%log_file%" 2>&1 || exit 1
-REM git submodule update --init --recursive >>"%log_file%" 2>&1 || exit 1
-REM cd /D ..
+call :get-extension-zip-from-github "zstd"                  "%PHP_ZSTD_VER%"             "kjdev"     "php-ext-zstd"            || exit 1
 
 call :pm-echo " - crypto: downloading %PHP_CRYPTO_VER%..."
 git clone https://github.com/bukka/php-crypto.git crypto >>"%log_file%" 2>&1 || exit 1
@@ -286,7 +297,7 @@ call configure^
  --enable-opcache-jit^
  --enable-phar^
  --enable-vanillagenerator^
-REM --enable-zstd^
+ --enable-zstd^
  --enable-recursionguard=shared^
  --enable-sockets^
  --enable-tokenizer^
