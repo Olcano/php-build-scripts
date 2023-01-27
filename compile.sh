@@ -17,7 +17,9 @@ LIBDEFLATE_VERSION="0d1779a071bcc636e5156ddb7538434da7acad22" #1.14
 LIBRDKAFKA_VER="9b72ca3aa6c49f8f57eea02f70aadb1453d3ba1f"
 LIBZSTD_VER="1.5.2"
 
-EXT_PTHREADS_VERSION="4.2.0"
+EXT_PTHREADS_VERSION_PM4="4.2.1"
+EXT_PTHREADS_VERSION_PM5="5.1.3"
+EXT_PTHREADS_VERSION="$EXT_PTHREADS_VERSION_PM4"
 EXT_YAML_VERSION="2.2.2"
 EXT_RDKAFKA_VERSION="6.0.3"
 EXT_LEVELDB_VERSION="317fdcd8415e1566fc2835ce2bdb8e19b890f9f3"
@@ -129,7 +131,9 @@ LD_PRELOAD=""
 
 COMPILE_GD="no"
 
-while getopts "::t:j:srdxff:gnva:" OPTION; do
+PM_VERSION_MAJOR="4"
+
+while getopts "::t:j:srdxff:gnva:P:" OPTION; do
 
 	case $OPTION in
 		t)
@@ -177,12 +181,22 @@ while getopts "::t:j:srdxff:gnva:" OPTION; do
 			echo "[opt] Will pass -fsanitize=$OPTARG to compilers and linkers"
 			FSANITIZE_OPTIONS="$OPTARG"
 			;;
+		P)
+			PM_VERSION_MAJOR="$OPTARG"
+			;;
 		\?)
 			echo "Invalid option: -$OPTARG" >&2
 			exit 1
 			;;
 	esac
 done
+
+if [ "$PM_VERSION_MAJOR" -ge 5 ]; then
+	EXT_PTHREADS_VERSION="$EXT_PTHREADS_VERSION_PM5"
+else
+	EXT_PTHREADS_VERSION="$EXT_PTHREADS_VERSION_PM4"
+fi
+write_out "opt" "Compiling with configuration for PocketMine-MP $PM_VERSION_MAJOR"
 
 GMP_ABI=""
 TOOLCHAIN_PREFIX=""
@@ -1177,7 +1191,8 @@ if [[ "$HAVE_XDEBUG" == "yes" ]]; then
 	echo -n " installing..."
 	make install >> "$DIR/install.log" 2>&1
 	echo "" >> "$INSTALL_DIR/bin/php.ini" 2>&1
-	echo "zend_extension=xdebug.so" >> "$INSTALL_DIR/bin/php.ini" 2>&1
+	echo ";WARNING: When loaded, xdebug 3.2.0 will cause segfaults whenever an uncaught error is thrown, even if xdebug.mode=off. Load it at your own risk." >> "$INSTALL_DIR/bin/php.ini" 2>&1
+	echo ";zend_extension=xdebug.so" >> "$INSTALL_DIR/bin/php.ini" 2>&1
 	echo ";https://xdebug.org/docs/all_settings#mode" >> "$INSTALL_DIR/bin/php.ini" 2>&1
 	echo "xdebug.mode=off" >> "$INSTALL_DIR/bin/php.ini" 2>&1
 	echo "xdebug.start_with_request=yes" >> "$INSTALL_DIR/bin/php.ini" 2>&1

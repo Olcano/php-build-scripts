@@ -25,7 +25,9 @@ set LIBDEFLATE_VER=0d1779a071bcc636e5156ddb7538434da7acad22
 set LIBRDKAFKA_VER=9b72ca3aa6c49f8f57eea02f70aadb1453d3ba1f
 set LIBZSTD_VER=1.5.2
 
-set PHP_PTHREADS_VER=4.2.0
+set PHP_PTHREADS_VER_PM4=4.2.1
+set PHP_PTHREADS_VER_PM5=5.1.3
+set PHP_PTHREADS_VER=
 set PHP_YAML_VER=2.2.2
 set PHP_CHUNKUTILS2_VER=0.3.3
 set PHP_IGBINARY_VER=3.2.12
@@ -66,6 +68,18 @@ if "%PHP_DEBUG_BUILD%"=="0" (
 	set MSBUILD_CONFIGURATION=Debug
 	call :pm-echo "Building debug binaries"
 )
+
+if "%PM_VERSION_MAJOR%"=="" (
+    set PM_VERSION_MAJOR=4
+)
+
+if "%PM_VERSION_MAJOR%" geq "5" (
+    set PHP_PTHREADS_VER=%PHP_PTHREADS_VER_PM5%
+) else (
+    set PHP_PTHREADS_VER=%PHP_PTHREADS_VER_PM4%
+)
+
+call :pm-echo "Compiling with configuration for PocketMine-MP %PM_VERSION_MAJOR%"
 
 if "%SOURCES_PATH%"=="" (
 	if "%PHP_DEBUG_BUILD%"=="0" (
@@ -395,7 +409,8 @@ call :pm-echo "Generating php.ini..."
 (echo opcache.jit=off)>>"%php_ini%"
 (echo opcache.jit_buffer_size=128M)>>"%php_ini%"
 (echo.)>>"%php_ini%"
-(echo zend_extension=php_xdebug.dll)>>"%php_ini%"
+(echo ;WARNING: When loaded, xdebug 3.2.0 will cause segfaults whenever an uncaught error is thrown, even if xdebug.mode=off. Load it at your own risk.)>>"%php_ini%"
+(echo ;zend_extension=php_xdebug.dll)>>"%php_ini%"
 (echo ;https://xdebug.org/docs/all_settings#mode)>>"%php_ini%"
 (echo xdebug.mode=off)>>"%php_ini%"
 (echo xdebug.start_with_request=yes)>>"%php_ini%"
