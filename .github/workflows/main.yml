@@ -145,7 +145,7 @@ jobs:
           TAG=$(echo "${VERSION::3}")
           echo "::set-output name=release_tag::${TAG}"
       - name: Restore release caches
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
       - name: Create and Publish Release for PM4
         uses: marvinpinto/action-automatic-releases@v1.1.1
         with:
