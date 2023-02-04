@@ -7,9 +7,12 @@ on:
 
 jobs:
   linux:
-    name: Linux
+    name: Linux for PM ${{ matrix.pm-version }}
     runs-on: ubuntu-20.04
     if: "!contains(github.event.head_commit.message, '[ci skip]')"
+    strategy:
+      matrix:
+        pm-version: [4, 5]
 
     steps:
       - uses: actions/checkout@v3
@@ -27,19 +30,19 @@ jobs:
           # Used "set -ex" instead of hashbang since script isn't executed with hashbang
           set -ex
           trap "exit 1" ERR
-          ./compile.sh -t linux64 -j 4 -f -g
+          ./compile.sh -t linux64 -j 4 -f -g -P ${{ matrix.pm-version }}
 
       - name: Create tarball
         run: |
           tar -czf ./PHP_Linux-x86_64.tar.gz bin
-          zip -r Linux.zip ./PHP_Linux-x86_64.tar.gz install.log
+          zip -r Linux-PM${{ matrix.pm-version }}.zip ./PHP_Linux-x86_64.tar.gz install.log
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: Linux
-          path: Linux.zip
+          name: Linux-PM${{ matrix.pm-version }}
+          path: Linux-PM${{ matrix.pm-version }}.zip
 
       - name: Prepare workspace for upload
         if: failure()
@@ -49,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v3
         if: failure()
         with:
-          name: Linux-workspace
+          name: Linux-PM${{ matrix.pm-version }}-workspace
           path: |
             workspace.tar.gz
           if-no-files-found: error
@@ -129,7 +132,7 @@ jobs:
 
   prepare-release:
     runs-on: ubuntu-20.04
-    needs: [linux, Windows]
+    needs: [linux, windows]
     if: "${{!contains(github.event.head_commit.message, '[ci skip]') && github.ref == 'refs/heads/stable'}}"
 
     steps:
@@ -143,13 +146,22 @@ jobs:
           echo "::set-output name=release_tag::${TAG}"
       - name: Restore release caches
         uses: actions/download-artifact@v2
-      - name: Create and Publish Release
+      - name: Create and Publish Release for PM4
         uses: marvinpinto/action-automatic-releases@v1.1.1
         with:
           automatic_release_tag: "${{ steps.php.outputs.release_tag }}"
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          title: "PHP ${{ steps.php.outputs.version }}"
+          title: "PHP ${{ steps.php.outputs.version }} for PM4"
           files: |
-            Linux/Linux.zip
+            Linux/Linux-PM4.zip
             Windows/php-*.zip
+          prerelease: false
+      - name: Create and Publish Release for PM5
+        uses: marvinpinto/action-automatic-releases@v1.1.1
+        with:
+          automatic_release_tag: "${{ steps.php.outputs.release_tag }}-pm5"
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          title: "PHP ${{ steps.php.outputs.version }} for PM5"
+          files: |
+            Linux/Linux-PM5.zip
           prerelease: false
