@@ -147,7 +147,7 @@ jobs:
       - name: Restore release caches
         uses: actions/download-artifact@v2
       - name: Create and Publish Release for PM4
-        uses: marvinpinto/action-automatic-releases@v1.1.1
+        uses: marvinpinto/action-automatic-releases@v1.2.1
         with:
           automatic_release_tag: "${{ steps.php.outputs.release_tag }}"
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -157,7 +157,7 @@ jobs:
             Windows/php-*.zip
           prerelease: false
       - name: Create and Publish Release for PM5
-        uses: marvinpinto/action-automatic-releases@v1.1.1
+        uses: marvinpinto/action-automatic-releases@v1.2.1
         with:
           automatic_release_tag: "${{ steps.php.outputs.release_tag }}-pm5"
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
