@@ -35,14 +35,14 @@ jobs:
       - name: Create tarball
         run: |
           tar -czf ./PHP_Linux-x86_64.tar.gz bin
-          zip -r Linux-PM${{ matrix.pm-version }}.zip ./PHP_Linux-x86_64.tar.gz install.log
+          zip -r Linux.zip ./PHP_Linux-x86_64.tar.gz install.log
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Linux-PM${{ matrix.pm-version }}
-          path: Linux-PM${{ matrix.pm-version }}.zip
+          path: Linux.zip
 
       - name: Prepare workspace for upload
         if: failure()
@@ -153,7 +153,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           title: "PHP ${{ steps.php.outputs.version }} for PM4"
           files: |
-            Linux-PM4/Linux-PM4.zip
+            Linux-PM4/Linux.zip
             Windows/php-*.zip
           prerelease: false
       - name: Create and Publish Release for PM5
@@ -163,5 +163,5 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           title: "PHP ${{ steps.php.outputs.version }} for PM5"
           files: |
-            Linux-PM5/Linux-PM5.zip
+            Linux-PM5/Linux.zip
           prerelease: false
