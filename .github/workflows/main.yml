@@ -153,7 +153,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           title: "PHP ${{ steps.php.outputs.version }} for PM4"
           files: |
-            Linux/Linux-PM4.zip
+            Linux-PM4/Linux-PM4.zip
             Windows/php-*.zip
           prerelease: false
       - name: Create and Publish Release for PM5
@@ -163,5 +163,5 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           title: "PHP ${{ steps.php.outputs.version }} for PM5"
           files: |
-            Linux/Linux-PM5.zip
+            Linux-PM5/Linux-PM5.zip
           prerelease: false
