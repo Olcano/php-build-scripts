@@ -745,8 +745,7 @@ function build_kafka {
   		rm -rf "$librdkafka_dir"
   		write_download
   		download_file "https://github.com/edenhill/librdkafka/archive/$LIBRDKAFKA_VER.tar.gz" "librdkafka" | tar -zx >> "$DIR/install.log" 2>&1
-		mv librdkafka-$LIBRDKAFKA_VER librdkafka
-		cd librdkafka
+		cd "$librdkafka_dir"
 		echo -n " checking..."
 		if [ "$DO_STATIC" != "yes" ]; then
 			local EXTRA_FLAGS="-DBUILD_SHARED_LIBS=ON"
