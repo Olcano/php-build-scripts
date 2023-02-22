@@ -32,7 +32,7 @@ EXT_LIBDEFLATE_VERSION="0.1.0"
 EXT_MORTON_VERSION="0.1.2"
 EXT_XXHASH_VERSION="0.1.1"
 EXT_VANILLAGENERATOR_VERSION="56fc48ea1367e1d08b228dfa580b513fbec8ca31"
-EXT_ZSTD_VERSION="0.11.0"
+EXT_ZSTD_VERSION="0.12.1"
 
 function write_out {
 	echo "[$1] $2"
@@ -494,30 +494,36 @@ mv php-src-php-$PHP_VERSION php
 echo " done!"
 
 function build_zstd {
-  	echo -n "[zstd] downloading $LIBZSTD_VER..."
-  	download_file "https://github.com/facebook/zstd/archive/v$LIBZSTD_VER.tar.gz" "zstd" | tar -zx >> "$DIR/install.log" 2>&1
-  	mv zstd-$LIBZSTD_VER zstd
-  	cd zstd/build/cmake
-
-  	echo -n " checking..."
-
-  	if [ "$DO_STATIC" != "yes" ]; then
-  		local EXTRA_FLAGS="-DBUILD_SHARED_LIBS=ON"
+	write_library zstd "$LIBZSTD_VER"
+	local zstd_dir="./zstd-$LIBZSTD_VER"
+  	
+	if cant_use_cache "$zstd_dir"; then
+		rm -rf "$zstd_dir"
+		write_download
+		download_file "https://github.com/facebook/zstd/archive/v$LIBZSTD_VER.tar.gz" "zstd" | tar -zx >> "$DIR/install.log" 2>&1
+		mv zstd-$LIBZSTD_VER zstd
+		cd zstd/build/cmake
+		echo -n " checking..."
+		if [ "$DO_STATIC" != "yes" ]; then
+  	  		local EXTRA_FLAGS="-DBUILD_SHARED_LIBS=ON"
+  		else
+  	  		local EXTRA_FLAGS=""
+  		fi
+  	  	cmake . \
+  	    	-DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+  	    	-DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
+  	    	-DCMAKE_INSTALL_LIBDIR=lib \
+  	    	-DCMAKE_BUILD_TYPE=Release \
+  	    	$CMAKE_GLOBAL_EXTRA_FLAGS \
+  	    	$EXTRA_FLAGS \
+  	    	>> "$DIR/install.log" 2>&1
+  	  	echo -n " compiling..."
+  	  	make -j $THREADS >> "$DIR/install.log" 2>&1
   	else
-  		local EXTRA_FLAGS=""
+  	  	write_caching
+  	  	cd "$zstd_dir"
   	fi
-  	cmake . \
-  		-DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-  		-DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
-  		-DCMAKE_INSTALL_LIBDIR=lib \
-  		-DCMAKE_BUILD_TYPE=Release \
-  		$CMAKE_GLOBAL_EXTRA_FLAGS \
-  		$EXTRA_FLAGS \
-  		>> "$DIR/install.log" 2>&1
-
-  	echo -n " compiling..."
-  	make -j $THREADS >> "$DIR/install.log" 2>&1
-  	echo -n " installing..."
+	echo -n " installing..."
   	make install >> "$DIR/install.log" 2>&1
   	cd ..
   	echo " done!"
@@ -732,32 +738,38 @@ function build_yaml {
 }
 
 function build_kafka {
-	echo -n "[librdkafka] downloading $LIBRDKAFKA_VER..."
-	download_file "https://github.com/edenhill/librdkafka/archive/$LIBRDKAFKA_VER.tar.gz" "kafka" | tar -zx >> "$DIR/install.log" 2>&1
-	mv librdkafka-$LIBRDKAFKA_VER librdkafka
-	cd librdkafka
+	write_library librdkafka "$LIBRDKAFKA_VER"
+	local librdkafka_dir="./librdkafka-$LIBRDKAFKA_VER"
 
-	echo -n " checking..."
-
-	if [ "$DO_STATIC" != "yes" ]; then
-		local EXTRA_FLAGS="-DBUILD_SHARED_LIBS=ON"
-	else
-		local EXTRA_FLAGS=""
-	fi
-	cmake . \
-		-DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-		-DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
-		-DCMAKE_INSTALL_LIBDIR=lib \
-		-DWITH_ZSTD=ON \
-		-DWITH_SSL=ON \
-		-DWITH_CURL=OFF \
-		-DCMAKE_BUILD_TYPE=Release \
-		$CMAKE_GLOBAL_EXTRA_FLAGS \
-		$EXTRA_FLAGS \
-		>> "$DIR/install.log" 2>&1
-
-	echo -n " compiling..."
-	make -j $THREADS >> "$DIR/install.log" 2>&1
+	if cant_use_cache "$librdkafka_dir"; then
+  		rm -rf "$librdkafka_dir"
+  		write_download
+  		download_file "https://github.com/edenhill/librdkafka/archive/$LIBRDKAFKA_VER.tar.gz" "librdkafka" | tar -zx >> "$DIR/install.log" 2>&1
+		mv librdkafka-$LIBRDKAFKA_VER librdkafka
+		cd librdkafka
+		echo -n " checking..."
+		if [ "$DO_STATIC" != "yes" ]; then
+			local EXTRA_FLAGS="-DBUILD_SHARED_LIBS=ON"
+		else
+			local EXTRA_FLAGS=""
+		fi
+    	cmake . \
+    	  -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+    	  -DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
+    	  -DCMAKE_INSTALL_LIBDIR=lib \
+    	  -DWITH_ZSTD=ON \
+    	  -DWITH_SSL=ON \
+    	  -DWITH_CURL=OFF \
+    	  -DCMAKE_BUILD_TYPE=Release \
+    	  $CMAKE_GLOBAL_EXTRA_FLAGS \
+    	  $EXTRA_FLAGS \
+    	  >> "$DIR/install.log" 2>&1
+		  echo -n " compiling..."
+		  make -j $THREADS >> "$DIR/install.log" 2>&1
+  	else
+  		write_caching
+  		cd "$librdkafka_dir"
+  	fi
 	echo -n " installing..."
 	make install >> "$DIR/install.log" 2>&1
 	cd ..
