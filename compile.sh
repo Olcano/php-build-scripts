@@ -495,7 +495,7 @@ echo " done!"
 
 function build_zstd {
   	echo -n "[zstd] downloading $LIBZSTD_VER..."
-  	download_file "https://github.com/facebook/zstd/archive/v$LIBZSTD_VER.tar.gz" | tar -zx >> "$DIR/install.log" 2>&1
+  	download_file "https://github.com/facebook/zstd/archive/v$LIBZSTD_VER.tar.gz" "zstd" | tar -zx >> "$DIR/install.log" 2>&1
   	mv zstd-$LIBZSTD_VER zstd
   	cd zstd/build/cmake
 
@@ -733,7 +733,7 @@ function build_yaml {
 
 function build_kafka {
 	echo -n "[librdkafka] downloading $LIBRDKAFKA_VER..."
-	download_file "https://github.com/edenhill/librdkafka/archive/$LIBRDKAFKA_VER.tar.gz" | tar -zx >> "$DIR/install.log" 2>&1
+	download_file "https://github.com/edenhill/librdkafka/archive/$LIBRDKAFKA_VER.tar.gz" "kafka" | tar -zx >> "$DIR/install.log" 2>&1
 	mv librdkafka-$LIBRDKAFKA_VER librdkafka
 	cd librdkafka
 
