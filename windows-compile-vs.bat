@@ -22,6 +22,7 @@ set LIBYAML_VER=0.2.5
 set PTHREAD_W32_VER=3.0.0
 set LEVELDB_MCPE_VER=1c7564468b41610da4f498430e795ca4de0931ff
 set LIBDEFLATE_VER=bd925ae68e99f65d69f20181cb845aaba5c8f098
+set LIBZSTD_VER=1.5.4
 
 set PHP_PTHREADS_VER_PM4=4.2.1
 set PHP_PTHREADS_VER_PM5=5.3.0
@@ -37,6 +38,7 @@ set PHP_LIBDEFLATE_VER=0.2.0
 set PHP_XXHASH_VER=0.1.1
 REM fork of xdebug to work around https://github.com/xdebug/xdebug/pull/878
 set PHP_XDEBUG_VER=fbd5d9cb9e18502992e017925a34b7232755f34f
+set PHP_ZSTD_VER=0.11.0
 
 set script_path=%~dp0
 set log_file=%script_path%compile.log
@@ -210,6 +212,22 @@ copy %MSBUILD_CONFIGURATION%\deflate.pdb "%DEPS_DIR%\bin\deflate.pdb" >>"%log_fi
 
 cd /D "%DEPS_DIR%"
 
+call :pm-echo "Downloading zstd version %LIBZSTD_VER%..."
+call :get-zip "https://github.com/facebook/zstd/archive/v%LIBZSTD_VER%.zip" || exit 1
+move zstd-%LIBZSTD_VER% zstd >> "%log_file%" 2>&1
+cd zstd/build/cmake
+call :pm-echo "Generating build configuration..."
+cmake -G "%CMAKE_TARGET%" -A "%ARCH%"^
+ -DCMAKE_PREFIX_PATH="%DEPS_DIR%"^
+ -DCMAKE_INSTALL_PREFIX="%DEPS_DIR%"^
+ -DBUILD_SHARED_LIBS=ON^
+ . >>"%log_file%" 2>&1 || exit 1
+call :pm-echo "Compiling..."
+msbuild ALL_BUILD.vcxproj /p:Configuration=%MSBUILD_CONFIGURATION% /m >>"%log_file%" 2>&1 || exit 1
+call :pm-echo "Installing files..."
+msbuild INSTALL.vcxproj /p:Configuration=%MSBUILD_CONFIGURATION% /m >>"%log_file%" 2>&1 || exit 1
+cd /D "%DEPS_DIR%"
+
 cd /D ..
 
 call :pm-echo "Getting additional PHP extensions..."
@@ -225,6 +243,7 @@ call :get-extension-zip-from-github "morton"                "%PHP_MORTON_VER%"  
 call :get-extension-zip-from-github "libdeflate"            "%PHP_LIBDEFLATE_VER%"            "pmmp"     "ext-libdeflate"          || exit 1
 call :get-extension-zip-from-github "xxhash"                "%PHP_XXHASH_VER%"                "pmmp"     "ext-xxhash"              || exit 1
 call :get-extension-zip-from-github "xdebug"                "%PHP_XDEBUG_VER%"                "dktapps"  "xdebug"                  || exit 1
+call :get-extension-zip-from-github "zstd"                  "%PHP_ZSTD_VER%"                  "kjdev"    "php-ext-zstd"            || exit 1
 
 call :pm-echo " - crypto: downloading %PHP_CRYPTO_VER%..."
 git clone https://github.com/bukka/php-crypto.git crypto >>"%log_file%" 2>&1 || exit 1
@@ -267,6 +286,7 @@ call configure^
  --enable-opcache^
  --enable-opcache-jit^
  --enable-phar^
+ --enable-zstd^
  --enable-recursionguard=shared^
  --enable-sockets^
  --enable-tokenizer^
