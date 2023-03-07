@@ -28,6 +28,9 @@ EXT_RECURSIONGUARD_VERSION="0.1.0"
 EXT_LIBDEFLATE_VERSION="0.2.0"
 EXT_MORTON_VERSION="0.1.2"
 EXT_XXHASH_VERSION="0.1.1"
+EXT_ZSTD_VERSION="0.12.1"
+EXT_RDKAFKA_VERSION="9876e9ad25cfd40ddee49f672170d98797800d49"
+EXT_VANILLAGENERATOR_VERSION="2.0.0"
 
 function write_out {
 	echo "[$1] $2"
@@ -696,6 +699,46 @@ function build_yaml {
 	echo " done!"
 }
 
+function build_librdkafka {
+	if [ "$DO_STATIC" != "yes" ]; then
+		local EXTRA_FLAGS="-DBUILD_SHARED_LIBS=ON"
+	else
+		local EXTRA_FLAGS=""
+	fi
+
+	write_library librdkafka "$LIBRDKAFKA_VERSION"
+	local librdkafka_dir="./librdkafka-$LIBRDKAFKA_VERSION"
+
+	if cant_use_cache "$librdkafka_dir"; then
+  		rm -rf "$librdkafka_dir"
+  		write_download
+  		download_file "https://github.com/edenhill/librdkafka/archive/v$LIBRDKAFKA_VERSION.tar.gz" "librdkafka" | tar -zx >> "$DIR/install.log" 2>&1
+		cd "$librdkafka_dir"
+		echo -n " checking..."
+    	cmake . \
+    	  -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+    	  -DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
+    	  -DCMAKE_INSTALL_LIBDIR=lib \
+    	  -DWITH_ZSTD=ON \
+    	  -DWITH_SSL=ON \
+    	  -DWITH_CURL=OFF \
+		  -DENABLE_LZ4_EXT=OFF \
+    	  -DCMAKE_BUILD_TYPE=Release \
+    	  $CMAKE_GLOBAL_EXTRA_FLAGS \
+    	  $EXTRA_FLAGS \
+    	  >> "$DIR/install.log" 2>&1
+		  echo -n " compiling..."
+		  make -j $THREADS >> "$DIR/install.log" 2>&1
+  	else
+  		write_caching
+  		cd "$librdkafka_dir"
+  	fi
+	echo -n " installing..."
+	make install >> "$DIR/install.log" 2>&1
+	cd ..
+	echo " done!"
+}
+
 function build_leveldb {
 	write_library leveldb "$LEVELDB_VERSION"
 	local leveldb_dir="./leveldb-$LEVELDB_VERSION"
@@ -1032,6 +1075,10 @@ get_github_extension "libdeflate" "$EXT_LIBDEFLATE_VERSION" "pmmp" "ext-libdefla
 get_github_extension "morton" "$EXT_MORTON_VERSION" "pmmp" "ext-morton"
 
 get_github_extension "xxhash" "$EXT_XXHASH_VERSION" "pmmp" "ext-xxhash"
+
+get_github_extension "rdkafka" "$EXT_RDKAFKA_VERSION" "larryTheCoder" "php-rdkafka"
+
+get_github_extension "vanillagenerator" "$EXT_VANILLAGENERATOR_VERSION" "NetherGamesMC" "ext-vanillagenerator"
 
 echo -n "[PHP]"
 
