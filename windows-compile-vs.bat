@@ -23,6 +23,7 @@ set PTHREAD_W32_VER=3.0.0
 set LEVELDB_MCPE_VER=1c7564468b41610da4f498430e795ca4de0931ff
 set LIBDEFLATE_VER=bd925ae68e99f65d69f20181cb845aaba5c8f098
 set LIBZSTD_VER=1.5.4
+set LIBRDKAFKA_VER=2.0.2
 
 set PHP_PTHREADS_VER_PM4=4.2.1
 set PHP_PTHREADS_VER_PM5=5.3.0
@@ -39,6 +40,7 @@ set PHP_XXHASH_VER=0.1.1
 REM fork of xdebug to work around https://github.com/xdebug/xdebug/pull/878
 set PHP_XDEBUG_VER=fbd5d9cb9e18502992e017925a34b7232755f34f
 set PHP_ZSTD_VER=0.11.0
+set PHP_RDKAFKA_VER=6.0.3
 
 set script_path=%~dp0
 set log_file=%script_path%compile.log
@@ -169,6 +171,32 @@ copy pthreadVC3.pdb "%DEPS_DIR%\bin\pthreadVC3.pdb" >>"%log_file%" 2>&1 || exit 
 
 cd /D "%DEPS_DIR%"
 
+call :pm-echo "Downloading librdkafka version %LIBRDKAFKA_VER%..."
+call :get-zip https://github.com/edenhill/librdkafka/archive/v%LIBRDKAFKA_VER%.zip || exit 1
+move librdkafka-* librdkafka >>"%log_file%" 2>&1
+cd /D librdkafka
+
+call :pm-echo "Generating build configuration..."
+
+cmake -G "%CMAKE_TARGET%" -A "%ARCH%"^
+ -DCMAKE_PREFIX_PATH="%DEPS_DIR%"^
+ -DCMAKE_INSTALL_PREFIX="%DEPS_DIR%"^
+ -DBUILD_SHARED_LIBS=ON^
+ . >>"%log_file%" 2>&1 || exit 1
+
+call :pm-echo "Compiling..."
+msbuild ALL_BUILD.vcxproj /p:Configuration=%MSBUILD_CONFIGURATION% >>"%log_file%" 2>&1 || exit 1
+call :pm-echo "Installing files..."
+msbuild INSTALL.vcxproj /p:Configuration=%MSBUILD_CONFIGURATION% /m >>"%log_file%" 2>&1 || exit 1
+
+cd /D "%DEPS_DIR%"
+
+REM for no reason, php-rdkafka check for librdkafka and not rdkafka
+REM move them to the appropriate location for php-rdkafka compatibility.
+call :pm-echo "Moving libraries files for php-rdkafka compatibility..."
+move "lib\rdkafka.lib" "lib\librdkafka.lib" >>"%log_file%" 2>&1
+move "lib\rdkafka++.lib" "lib\librdkafka++.lib" >>"%log_file%" 2>&1
+
 call :pm-echo "Downloading pmmp/leveldb version %LEVELDB_MCPE_VER%..."
 call :get-zip https://github.com/pmmp/leveldb/archive/%LEVELDB_MCPE_VER%.zip || exit 1
 move leveldb-%LEVELDB_MCPE_VER% leveldb >>"%log_file%" 2>&1
@@ -244,6 +272,7 @@ call :get-extension-zip-from-github "libdeflate"            "%PHP_LIBDEFLATE_VER
 call :get-extension-zip-from-github "xxhash"                "%PHP_XXHASH_VER%"                "pmmp"     "ext-xxhash"              || exit 1
 call :get-extension-zip-from-github "xdebug"                "%PHP_XDEBUG_VER%"                "dktapps"  "xdebug"                  || exit 1
 call :get-extension-zip-from-github "zstd"                  "%PHP_ZSTD_VER%"                  "kjdev"    "php-ext-zstd"            || exit 1
+call :get-extension-zip-from-github "rdkafka"               "%PHP_RDKAFKA_VER%"              "arnaud-lb" "php-rdkafka"             || exit 1
 
 call :pm-echo " - crypto: downloading %PHP_CRYPTO_VER%..."
 git clone https://github.com/bukka/php-crypto.git crypto >>"%log_file%" 2>&1 || exit 1
@@ -317,6 +346,7 @@ call configure^
  --with-xdebug-compression^
  --with-xml^
  --with-yaml^
+ --with-rdkafka^
  --with-pdo-mysql^
  --with-pdo-sqlite^
  --without-readline >>"%log_file%" 2>&1 || call :pm-fatal-error "Error configuring PHP"
