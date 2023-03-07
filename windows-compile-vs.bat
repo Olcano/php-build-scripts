@@ -41,6 +41,7 @@ REM fork of xdebug to work around https://github.com/xdebug/xdebug/pull/878
 set PHP_XDEBUG_VER=fbd5d9cb9e18502992e017925a34b7232755f34f
 set PHP_ZSTD_VER=0.11.0
 set PHP_RDKAFKA_VER=6.0.3
+set PHP_VANILLAGENERATOR_VER=2.0.0
 
 set script_path=%~dp0
 set log_file=%script_path%compile.log
@@ -273,6 +274,7 @@ call :get-extension-zip-from-github "xxhash"                "%PHP_XXHASH_VER%"  
 call :get-extension-zip-from-github "xdebug"                "%PHP_XDEBUG_VER%"                "dktapps"  "xdebug"                  || exit 1
 call :get-extension-zip-from-github "zstd"                  "%PHP_ZSTD_VER%"                  "kjdev"    "php-ext-zstd"            || exit 1
 call :get-extension-zip-from-github "rdkafka"               "%PHP_RDKAFKA_VER%"              "arnaud-lb" "php-rdkafka"             || exit 1
+call :get-extension-zip-from-github "vanillagenerator"      "%PHP_VANILLAGENERATOR_VER%"    "NetherGamesMC" "ext-vanillagenerator" || exit 1
 
 call :pm-echo " - crypto: downloading %PHP_CRYPTO_VER%..."
 git clone https://github.com/bukka/php-crypto.git crypto >>"%log_file%" 2>&1 || exit 1
@@ -315,6 +317,7 @@ call configure^
  --enable-opcache^
  --enable-opcache-jit^
  --enable-phar^
+ --enable-vanillagenerator^
  --enable-zstd^
  --enable-recursionguard=shared^
  --enable-sockets^
