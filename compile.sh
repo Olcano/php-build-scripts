@@ -710,29 +710,29 @@ function build_librdkafka {
 	local librdkafka_dir="./librdkafka-$LIBRDKAFKA_VERSION"
 
 	if cant_use_cache "$librdkafka_dir"; then
-  		rm -rf "$librdkafka_dir"
-  		write_download
-  		download_file "https://github.com/edenhill/librdkafka/archive/v$LIBRDKAFKA_VERSION.tar.gz" "librdkafka" | tar -zx >> "$DIR/install.log" 2>&1
+		rm -rf "$librdkafka_dir"
+		write_download
+		download_file "https://github.com/edenhill/librdkafka/archive/v$LIBRDKAFKA_VERSION.tar.gz" "librdkafka" | tar -zx >> "$DIR/install.log" 2>&1
 		cd "$librdkafka_dir"
 		echo -n " checking..."
-    	cmake . \
-    	  -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
-    	  -DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
-    	  -DCMAKE_INSTALL_LIBDIR=lib \
-    	  -DWITH_ZSTD=ON \
-    	  -DWITH_SSL=ON \
-    	  -DWITH_CURL=OFF \
-		  -DENABLE_LZ4_EXT=OFF \
-    	  -DCMAKE_BUILD_TYPE=Release \
-    	  $CMAKE_GLOBAL_EXTRA_FLAGS \
-    	  $EXTRA_FLAGS \
-    	  >> "$DIR/install.log" 2>&1
-		  echo -n " compiling..."
-		  make -j $THREADS >> "$DIR/install.log" 2>&1
-  	else
-  		write_caching
-  		cd "$librdkafka_dir"
-  	fi
+		cmake . \
+			-DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
+			-DCMAKE_PREFIX_PATH="$INSTALL_DIR" \
+			-DCMAKE_INSTALL_LIBDIR=lib \
+			-DWITH_ZSTD=ON \
+			-DWITH_SSL=ON \
+			-DWITH_CURL=OFF \
+			-DENABLE_LZ4_EXT=OFF \
+			-DCMAKE_BUILD_TYPE=Release \
+			$CMAKE_GLOBAL_EXTRA_FLAGS \
+			$EXTRA_FLAGS \
+			>> "$DIR/install.log" 2>&1
+		echo -n " compiling..."
+		make -j $THREADS >> "$DIR/install.log" 2>&1 && mark_cache
+	else
+		write_caching
+		cd "$librdkafka_dir"
+	fi
 	echo -n " installing..."
 	make install >> "$DIR/install.log" 2>&1
 	cd ..
